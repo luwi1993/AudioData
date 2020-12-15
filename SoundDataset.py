@@ -1,18 +1,16 @@
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 import torch
 from SoundObject import SoundObject
-from hyperparams import hyperparams
 import numpy as np
 import os
 
 
-def load(path):
-    hp = hyperparams()
-    file_paths = os.listdir(path)[:5]
+def load(hp):
+    file_paths = os.listdir(hp.path)[:hp.load_n]
     mels, labels = [], []
     for file in file_paths:
-        audio = SoundObject(path + "/" + file, hp)
-        mels.append(audio.get_mel())
+        audio = SoundObject(hp.path + "/" + file, hp)
+        mels.append(audio.get_mel()[:hp.data_shape[0],:])
         alphanumeric_filter = filter(str.isalpha, file[:-4])
         prefix = "".join(alphanumeric_filter)
         labels.append(prefix)
@@ -20,25 +18,27 @@ def load(path):
 
 
 class SoundDataset(Dataset):
-    def __init__(self, path):
-        self.mels, self.labels = load(path)
+    def __init__(self, hp):
+        self.hp = hp
+        self.mels, self.labels = load(self.hp)
         assert len(self.mels) == len(self.labels), "load error"
         self.n_samples = len(self.mels)
+        self.prep()
 
     def prep(self):
         self.prep_mels()
         self.prep_labels()
 
     def prep_mels(self):
-        self.mels = [np.reshape(image, (1, 28, 28)) for image in self.images]
-        self.mels = torch.from_numpy(np.asarray(self.images)).type(torch.float32)
+        self.mels = [np.reshape(mel, (1, self.hp.data_shape[0], self.hp.data_shape[1])) for mel in self.mels]
+        self.mels = torch.from_numpy(np.asarray(self.mels)).type(torch.float32)
 
     def prep_labels(self):
         unique_labels = np.unique(self.labels)
         self.label2idx = {label: index for index, label in enumerate(unique_labels)}
         self.idx2label = {index: label for index, label in enumerate(unique_labels)}
-        n_unique_labels = len(unique_labels)
-        one_hot_labels = np.zeros((self.n_samples, n_unique_labels))
+        self.n_unique_labels = len(unique_labels)
+        one_hot_labels = np.zeros((self.n_samples, self.n_unique_labels))
         for index, label in enumerate(self.labels):
             one_hot_labels[index, self.label2idx[label]] = 1
         self.labels = torch.from_numpy(np.asarray(one_hot_labels)).type(torch.float32)
@@ -49,6 +49,7 @@ class SoundDataset(Dataset):
     def __len__(self):
         return self.n_samples
 
+from hyperparams import hyperparams
 if __name__ == "__main__":
-    path = "/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/JE/"
-    SoundDataset(path)
+    hp = hyperparams()
+    SoundDataset(hp)
