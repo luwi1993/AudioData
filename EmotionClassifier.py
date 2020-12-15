@@ -67,12 +67,23 @@ class Trainer:
     def accuracy(self, y_pred, target):
         return (np.argmax(y_pred) == np.argmax(target)).sum() / len(y_pred)
 
+import os
+def dataloader_exists(path):
+    return os.path.isfile(path)
+
 from hyperparams import hyperparams
 if __name__ == "__main__":
     hp = hyperparams()
+
     print("prepare dataset...")
-    dataset = SoundDataset(hp)
-    dataloader = DataLoader(dataset=dataset, batch_size=hp.batch_size, shuffle=True, num_workers=1)
+    if dataloader_exists(hp.dataloader_path):
+        dataloader = torch.load(hp.dataloader_path)
+        print("dataloader found at: "+ hp.dataloader_path)
+    else:
+        dataset = SoundDataset(hp)
+        dataloader = DataLoader(dataset=dataset, batch_size=hp.batch_size, shuffle=True, num_workers=0)
+        torch.save(dataloader, hp.dataloader_path)
+
     model = CNN()
     print("start training...")
     trainer = Trainer(hp, dataloader, model)

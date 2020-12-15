@@ -4,31 +4,34 @@ import matplotlib.pyplot as plt
 import numpy as np
 import animate
 import soundfile as sf
+from python_speech_features import mfcc
 import sys
 
+
 class SoundObject:
-    def __init__(self, path, hp):
+    def __init__(self, path, hp, init_transforms=False):
         self.path = path
         self.hp = hp
         self.load()
-        self.get_transforms()
+        if init_transforms:
+            self.get_transforms()
 
     def __str__(self):
-        return "\n" + "-"*100 \
-            + "\nSoundObject:" + "\nsample_rate:" + str(self.sample_rate) \
-            + "\nduration:" + str(self.duration) \
-            + "\nn_samples:" + str(self.n_samples) \
-            + "\nsamples:" + str(self.samples[:5]) + "..." \
-            + "\nfrequenzies:" + str(self.freqs[:3]) + "..." + str(self.freqs[-3:]) \
-            + "\ntransform:" + str(self.transform[:3, 1]) + str(self.transform.shape)\
-            + "\n" + "-"*100
+        return "\n" + "-" * 100 \
+               + "\nSoundObject:" + "\nsample_rate:" + str(self.sample_rate) \
+               + "\nduration:" + str(self.duration) \
+               + "\nn_samples:" + str(self.n_samples) \
+               + "\nsamples:" + str(self.samples[:5]) + "..." \
+               + "\nfrequenzies:" + str(self.freqs[:3]) + "..." + str(self.freqs[-3:]) \
+               + "\ntransform:" + str(self.transform[:3, 1]) + str(self.transform.shape) \
+               + "\n" + "-" * 100
 
     def get_transforms(self):
         self.stft()
         self.istft()
 
     def load(self):
-        self.samples, self.sample_rate = librosa.load(self.path, sr = self.hp.sample_rate)
+        self.samples, self.sample_rate = librosa.load(self.path, sr=self.hp.sample_rate)
         assert self.sample_rate == self.hp.sample_rate, "SamplerateError"
         self.set_params_from_samples()
 
@@ -52,10 +55,10 @@ class SoundObject:
         plt.show()
 
     def animate_stft(self):
-        animate.animate_stft("stft",self.transform, self.freqs, self.duration)
+        animate.animate_stft("stft", self.transform, self.freqs, self.duration)
 
     def animate_mel(self):
-        animate.animate_stft("mel",self.get_mel().T, np.arange(self.hp.nmels), self.duration)
+        animate.animate_stft("mel", self.get_mel().T, np.arange(self.hp.nmels), self.duration)
 
     def find_beginning(self):
         pass
@@ -100,7 +103,7 @@ class SoundObject:
             return self.exponential_decay
 
     def trim(self):
-        self.samples,_ = librosa.effects.trim(self.samples, self.hp.silence_db)
+        self.samples, _ = librosa.effects.trim(self.samples, self.hp.silence_db)
         self.set_params_from_samples()
         self.get_transforms()
 
@@ -122,14 +125,19 @@ class SoundObject:
         mel = np.clip((mel - self.hp.ref_db + self.hp.max_db) / self.hp.max_db, 1e-8, 1)
         return mel.T.astype(np.float32)
 
+    def mfcc(self):
+        return mfcc(signal=self.samples, samplerate=self.sample_rate, nfft=self.hp.nfft,
+                    numcep=self.hp.nmels, nfilt=self.hp.nmels)
+
     def preemphasis(self, y):
         return np.append(y[0], y[1:] - hp.preemphasis * y[:-1])
 
+
 from hyperparams import hyperparams
+
 if __name__ == "__main__":
     hp = hyperparams()
     so = SoundObject("files/voice.wav", hp)
     so.trim()
-
-
-
+    mfcc = so.mfcc()
+    print(mfcc.shape)

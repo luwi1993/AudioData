@@ -10,7 +10,7 @@ def load(hp):
     mels, labels = [], []
     for file in file_paths:
         audio = SoundObject(hp.path + "/" + file, hp)
-        mels.append(audio.get_mel()[:hp.data_shape[0],:])
+        mels.append(audio.mfcc()[:hp.data_shape[0],:])
         alphanumeric_filter = filter(str.isalpha, file[:-4])
         prefix = "".join(alphanumeric_filter)
         labels.append(prefix)
