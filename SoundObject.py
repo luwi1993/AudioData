@@ -119,7 +119,7 @@ class SoundObject:
 
     def get_mel(self):
         mel = self.db_mel()
-        mel = np.clip((mel - hp.ref_db + hp.max_db) / hp.max_db, 1e-8, 1)
+        mel = np.clip((mel - self.hp.ref_db + self.hp.max_db) / self.hp.max_db, 1e-8, 1)
         return mel.T.astype(np.float32)
 
     def preemphasis(self, y):

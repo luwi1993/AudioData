@@ -88,16 +88,15 @@ if __name__ == "__main__":
     lr = 0.00005
 
     dataset = MnistDataset()
-    dataloader = DataLoader(dataset=dataset, batch_size=32, shuffle=True, num_workers=2)
-
+    dataloader = DataLoader(dataset=dataset, batch_size=256, shuffle=True, num_workers=2)
     model = CNN()
     model.float()
     optimizer = optim.Adadelta(model.parameters(), lr=lr)
-    for i, (data, label) in enumerate(dataloader):
-        optimizer.zero_grad()
-        prediction = model(data)
-        loss =  nn.BCELoss()
-        output = loss(prediction, label)
-        output.backward()
-        optimizer.step()
-        print("batch_idx: " + str(i) + " loss: ", str(output))
+    # for i, (data, label) in enumerate(dataloader):
+    #     optimizer.zero_grad()
+    #     prediction = model(data)
+    #     loss =  nn.BCELoss()
+    #     output = loss(prediction, label)
+    #     output.backward()
+    #     optimizer.step()
+    #     print("batch_idx: " + str(i) + " loss: ", str(output.data.tolist()))
