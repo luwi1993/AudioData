@@ -8,3 +8,5 @@ class hyperparams:
         self.silence_db = 30
         self.nmels = 80
         self.preemphasis = 0.97
+        self.max_db = 100
+        self.ref_db = 20

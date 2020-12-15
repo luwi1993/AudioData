@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import animate
 import soundfile as sf
+import sys
 
 class SoundObject:
     def __init__(self, path, hp):
@@ -51,7 +52,10 @@ class SoundObject:
         plt.show()
 
     def animate_stft(self):
-        animate.animate_stft(self.transform, self.freqs, self.duration)
+        animate.animate_stft("stft",self.transform, self.freqs, self.duration)
+
+    def animate_mel(self):
+        animate.animate_stft("mel",self.get_mel().T, np.arange(self.hp.nmels), self.duration)
 
     def find_beginning(self):
         pass
@@ -107,19 +111,25 @@ class SoundObject:
         return np.abs(self.transform)
 
     def db_mel(self):
-        return 20 * np.log10(np.maximum(1e-5, self.mel()))
+        return 20 * np.log10(np.maximum(1e-5, self.mel_base()))
 
-    def mel(self):
+    def mel_base(self):
         mel_basis = librosa.filters.mel(self.hp.sample_rate, self.hp.nfft, self.hp.nmels)  # (n_mels, 1+n_fft//2)
         return np.dot(mel_basis, self.magnitude_spec())
 
+    def get_mel(self):
+        mel = self.db_mel()
+        mel = np.clip((mel - hp.ref_db + hp.max_db) / hp.max_db, 1e-8, 1)
+        return mel.T.astype(np.float32)
+
     def preemphasis(self, y):
         return np.append(y[0], y[1:] - hp.preemphasis * y[:-1])
-
-
 
 from hyperparams import hyperparams
 if __name__ == "__main__":
     hp = hyperparams()
     so = SoundObject("files/voice.wav", hp)
-    print(so.mel().shape)
+    so.trim()
+
+
+
