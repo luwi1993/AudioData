@@ -127,17 +127,30 @@ class SoundObject:
 
     def mfcc(self):
         return mfcc(signal=self.samples, samplerate=self.sample_rate, nfft=self.hp.nfft,
-                    numcep=self.hp.nmels, nfilt=self.hp.nmels)
+                            numcep=self.hp.nmels, nfilt=self.hp.nmels)
 
     def preemphasis(self, y):
         return np.append(y[0], y[1:] - hp.preemphasis * y[:-1])
 
 
 from hyperparams import hyperparams
+import os
+import pandas as pd
 
 if __name__ == "__main__":
     hp = hyperparams()
-    so = SoundObject("files/voice.wav", hp)
-    so.trim()
-    mfcc = so.mfcc()
-    print(mfcc.shape)
+    res = {"shape0":[], "shape1":[], "min":[], "max":[], "mean":[],"var":[]}
+    file_paths = os.listdir(hp.path)
+    I = len(file_paths)
+    for i,file in enumerate(file_paths):
+        print(i/I)
+        path = hp.path + "/" + file
+        so = SoundObject(path, hp, init_transforms=True)
+        mfcc_feature = so.get_mel()
+        res["shape0"].append(mfcc_feature.shape[0])
+        res["shape1"].append(mfcc_feature.shape[1])
+        res["min"].append(mfcc_feature.min())
+        res["max"].append(mfcc_feature.max())
+        res["mean"].append(mfcc_feature.mean())
+        res["var"].append(mfcc_feature.var())
+    pd.DataFrame(res).to_csv("files/metadata.csv")
