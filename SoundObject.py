@@ -4,12 +4,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import animate
 import soundfile as sf
-from python_speech_features import mfcc
+#from python_speech_features import mfcc
 import sys
 
 
 class SoundObject:
-    def __init__(self, path, hp, init_transforms=False):
+    def __init__(self, path, hp, init_transforms=True):
         self.path = path
         self.hp = hp
         self.load()
@@ -126,8 +126,9 @@ class SoundObject:
         return mel.T.astype(np.float32)
 
     def mfcc(self):
-        return mfcc(signal=self.samples, samplerate=self.sample_rate, nfft=self.hp.nfft,
-                            numcep=self.hp.nmels, nfilt=self.hp.nmels)
+        return self.get_mel()
+            # mfcc(signal=self.samples, samplerate=self.sample_rate, nfft=self.hp.nfft,
+            #                 numcep=self.hp.nmels, nfilt=self.hp.nmels)
 
     def preemphasis(self, y):
         return np.append(y[0], y[1:] - hp.preemphasis * y[:-1])

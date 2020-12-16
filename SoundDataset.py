@@ -31,18 +31,28 @@ class SoundDataset(Dataset):
         self.prep_labels()
 
     def prep_mels(self):
-        self.data = [np.reshape(mel, (1, self.hp.data_shape[0], self.hp.data_shape[1])) for mel in self.data]
-        self.data = torch.from_numpy(np.asarray(self.data)/172).type(torch.float32)
+        if self.hp.model_name == "RNN":
+            self.data = [np.reshape(mel, (self.hp.data_shape[0], self.hp.data_shape[1])) for mel in self.data]
+            self.data = torch.from_numpy(np.asarray(self.data)/172).type(torch.float32)
+        elif self.hp.model_name == "CNN":
+            self.data = [np.reshape(mel, (1, self.hp.data_shape[0], self.hp.data_shape[1])) for mel in self.data]
+            self.data = torch.from_numpy(np.asarray(self.data)/172).type(torch.float32)
 
     def prep_labels(self):
         unique_labels = np.unique(self.labels)
         self.label2idx = {label: index for index, label in enumerate(unique_labels)}
         self.idx2label = {index: label for index, label in enumerate(unique_labels)}
-        self.n_unique_labels = len(unique_labels)
-        one_hot_labels = np.zeros((self.n_samples, self.n_unique_labels))
-        for index, label in enumerate(self.labels):
-            one_hot_labels[index, self.label2idx[label]] = 1
-        self.labels = torch.from_numpy(np.asarray(one_hot_labels)).type(torch.float32)
+        self.n_unique_labels = len(np.unique(self.labels))
+        self.labels = [self.label2idx[label] for label in self.labels]
+        self.labels = torch.from_numpy(np.asarray(self.labels)).type(torch.long)
+        # unique_labels = np.unique(self.labels)
+        # self.label2idx = {label: index for index, label in enumerate(unique_labels)}
+        # self.idx2label = {index: label for index, label in enumerate(unique_labels)}
+        # self.n_unique_labels = len(unique_labels)
+        # one_hot_labels = np.zeros((self.n_samples, self.n_unique_labels))
+        # for index, label in enumerate(self.labels):
+        #     one_hot_labels[index, self.label2idx[label]] = 1
+        # self.labels = torch.from_numpy(np.asarray(one_hot_labels)).type(torch.float32)
 
     def __getitem__(self, index):
         return self.data[index], self.labels[index]

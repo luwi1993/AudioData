@@ -14,7 +14,7 @@ def get_model(hp, dataloader):
         trainer = Trainer(hp, dataloader, model)
     elif hp.model_name == "RNN":
         from models.RNN import Trainer, RNN
-        model = RNN(hp.nmels, 64, 3, hp.num_classes, classes=None)
+        model = RNN(hp.nmels, 64, 3, hp.num_classes,hp.device, classes=None)
         trainer = Trainer(hp, dataloader, model)
     return model, trainer
 

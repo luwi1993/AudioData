@@ -2,6 +2,7 @@ import numpy as np
 import torch.nn.functional as F
 import torch
 import torch.nn as nn
+from hyperparams import hyperparams
 
 class RNN(nn.Module):
     def __init__(self, input_size, hidden_size, num_layers, num_classes, device, classes=None):
@@ -52,3 +53,50 @@ class RNN(nn.Module):
         x = audio.mfcc.T  # (time_len, feature_dimension)
         idx = self.predict(x)
         return idx
+
+class Trainer:
+    def __init__(self, hp, train_loader, model):
+        self.hp = hp
+        self.train_loader = train_loader
+        self.model = model
+
+    def train(self):
+        device = self.hp.device
+        # -- Loss and optimizer
+        criterion = nn.CrossEntropyLoss()
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.hp.lr)
+        optimizer.zero_grad()
+
+        # -- Train the model
+        total_step = len(self.train_loader)
+        curr_lr = self.hp.lr
+        cnt_batches = 0
+        for n in range(1, 1 + self.hp.n_epochs):
+            accuracy = 0
+            for i, (featuress, labels) in enumerate(self.train_loader):
+                cnt_batches += 1
+
+                ''' original code of pytorch-tutorial:
+                images = images.reshape(-1, sequence_length, input_size).to(device)
+                labels = labels.to(device)
+                # we can see that the shape of images should be: 
+                #    (batch_size, sequence_length, input_size)
+                '''
+                featuress = featuress.to(device)
+                labels = labels.to(device)
+
+                # Forward pass
+                prediction = self.model(featuress)
+                loss = criterion(prediction, labels)
+
+                # Backward and optimize
+                loss.backward()  # error
+                optimizer.step()
+                optimizer.zero_grad()
+
+                accuracy += self.accuracy(prediction.data, labels.data).data.tolist()
+            print("epoch: " + str(n) + " loss: ", str(loss.data.tolist()),
+                      "accuracy: " + str(accuracy / (i + 1)))
+
+    def accuracy(self, y_pred, target):
+        return (np.argmax(y_pred) == np.argmax(target)).sum() / len(y_pred)
