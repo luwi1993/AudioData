@@ -10,11 +10,11 @@ def dataloader_exists(path):
 def get_model(hp, dataloader):
     if hp.model_name == "CNN":
         from models.CNN import Trainer, CNN
-        model = CNN()
+        model = CNN(hp)
         trainer = Trainer(hp, dataloader, model)
     elif hp.model_name == "RNN":
         from models.RNN import Trainer, RNN
-        model = RNN(hp.nmels, 64, 3, hp.num_classes,hp.device, classes=None)
+        model = RNN(hp.n_features, 64, 3, hp.num_classes, hp.device, classes=None)
         trainer = Trainer(hp, dataloader, model)
     return model, trainer
 

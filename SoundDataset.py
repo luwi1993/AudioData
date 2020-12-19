@@ -18,9 +18,12 @@ class SoundDataset(Dataset):
     def load(self):
         file_paths = os.listdir(self.hp.path)[:self.hp.load_n]
         data, labels = [], []
-        for file in file_paths:
+        N = len(file_paths)
+        for n,file in enumerate(file_paths):
+            if self.hp.verbose:
+                print("file {} von {} : {}".format(n,N, file))
             audio = SoundObject(self.hp.path + "/" + file, self.hp)
-            data.append(audio.mfcc()[:self.hp.data_shape[0], :])
+            data.append(audio.get_feature()[:self.hp.data_shape[0], :])
             alphanumeric_filter = filter(str.isalpha, file[:-4])
             prefix = "".join(alphanumeric_filter)
             labels.append(prefix)

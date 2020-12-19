@@ -95,7 +95,9 @@ class Trainer:
                 optimizer.zero_grad()
 
                 accuracy += self.accuracy(prediction.data, labels.data).data.tolist()
-            print("epoch: " + str(n) + " loss: ", str(loss.data.tolist()),
+
+            if self.hp.verbose:
+                print("epoch: " + str(n) + " loss: ", str(loss.data.tolist()),
                       "accuracy: " + str(accuracy / (i + 1)))
 
     def accuracy(self, y_pred, target):

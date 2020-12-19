@@ -89,9 +89,10 @@ if __name__ == "__main__":
 
     dataset = MnistDataset()
     dataloader = DataLoader(dataset=dataset, batch_size=256, shuffle=True, num_workers=2)
-    model = CNN()
-    model.float()
-    optimizer = optim.Adadelta(model.parameters(), lr=lr)
+    torch.save(dataloader, "files/mnist_dataloader.pth")
+    # model = CNN()
+    # model.float()
+    # optimizer = optim.Adadelta(model.parameters(), lr=lr)
     # for i, (data, label) in enumerate(dataloader):
     #     optimizer.zero_grad()
     #     prediction = model(data)

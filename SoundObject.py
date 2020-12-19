@@ -58,7 +58,7 @@ class SoundObject:
         animate.animate_stft("stft", self.transform, self.freqs, self.duration)
 
     def animate_mel(self):
-        animate.animate_stft("mel", self.get_mel().T, np.arange(self.hp.nmels), self.duration)
+        animate.animate_stft("mel", self.get_mel().T, np.arange(self.hp.n_features), self.duration)
 
     def find_beginning(self):
         pass
@@ -107,31 +107,49 @@ class SoundObject:
         self.set_params_from_samples()
         self.get_transforms()
 
+    def pad(self, x):
+        t = x.shape[1]
+        pad = self.hp.temporal_rate - (t % self.hp.temporal_rate) if t % self.hp.temporal_rate != 0 else 0
+        x = np.pad(x, [[0, 0], [0, pad]], mode="constant")
+        # temporal reduction
+        x = x[..., ::self.hp.temporal_rate]
+        return x
+
     def to_wav(self):
         sf.write("files/processed.wav", self.samples, self.sample_rate)
 
     def magnitude_spec(self):
-        return np.abs(self.transform)
+        return np.absolute(self.transform)
 
-    def db_mel(self):
-        return 20 * np.log10(np.maximum(1e-5, self.mel_base()))
+    def to_db(self, x):
+        return 20 * np.log10(np.maximum(1e-10, x))
 
     def mel_base(self):
-        mel_basis = librosa.filters.mel(self.hp.sample_rate, self.hp.nfft, self.hp.nmels)  # (n_mels, 1+n_fft//2)
+        mel_basis = librosa.filters.mel(self.hp.sample_rate, self.hp.nfft, self.hp.n_features)  # (n_mels, 1+n_fft//2)
         return np.dot(mel_basis, self.magnitude_spec())
 
-    def get_mel(self):
-        mel = self.db_mel()
+    def get_mel_feature(self):
+        mel = self.mel_base()
+        mel = self.to_db(mel)
         mel = np.clip((mel - self.hp.ref_db + self.hp.max_db) / self.hp.max_db, 1e-8, 1)
+       # mel = self.pad(mel)
         return mel.T.astype(np.float32)
 
     def mfcc(self):
-        return self.get_mel()
-            # mfcc(signal=self.samples, samplerate=self.sample_rate, nfft=self.hp.nfft,
-            #                 numcep=self.hp.nmels, nfilt=self.hp.nmels)
+        return librosa.feature.mfcc(self.samples, self.sample_rate, n_mfcc=self.hp.n_features)
+
+    def get_mfcc_feature(self):
+        return self.mfcc()
 
     def preemphasis(self, y):
         return np.append(y[0], y[1:] - hp.preemphasis * y[:-1])
+
+    def get_feature(self):
+        if self.hp.feature_mode == "mel":
+            feature = self.get_mel_feature()
+        elif self.hp.feature_mode == "mfcc":
+            feature = self.get_mfcc_feature()
+        return feature
 
 
 from hyperparams import hyperparams
@@ -147,11 +165,11 @@ if __name__ == "__main__":
         print(i/I)
         path = hp.path + "/" + file
         so = SoundObject(path, hp, init_transforms=True)
-        mfcc_feature = so.get_mel()
-        res["shape0"].append(mfcc_feature.shape[0])
-        res["shape1"].append(mfcc_feature.shape[1])
-        res["min"].append(mfcc_feature.min())
-        res["max"].append(mfcc_feature.max())
-        res["mean"].append(mfcc_feature.mean())
-        res["var"].append(mfcc_feature.var())
+        feature = so.get_feature()
+        res["shape0"].append(feature.shape[0])
+        res["shape1"].append(feature.shape[1])
+        res["min"].append(feature.min())
+        res["max"].append(feature.max())
+        res["mean"].append(feature.mean())
+        res["var"].append(feature.var())
     pd.DataFrame(res).to_csv("files/metadata.csv")
