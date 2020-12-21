@@ -40,6 +40,9 @@ class SoundDataset(Dataset):
         elif self.hp.model_name == "CNN":
             self.data = [np.reshape(mel, (1, self.hp.data_shape[0], self.hp.data_shape[1])) for mel in self.data]
             self.data = torch.from_numpy(np.asarray(self.data)/172).type(torch.float32)
+        elif self.hp.model_name == "AudioEncoder":
+            self.data = [np.reshape(mel, (self.hp.data_shape[0], self.hp.data_shape[1])).T for mel in self.data]
+            self.data = torch.from_numpy(np.asarray(self.data)/172).type(torch.float32)
 
     def prep_labels(self):
         unique_labels = np.unique(self.labels)

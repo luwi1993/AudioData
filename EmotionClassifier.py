@@ -16,6 +16,10 @@ def get_model(hp, dataloader):
         from models.RNN import Trainer, RNN
         model = RNN(hp.n_features, 64, 3, hp.num_classes, hp.device, classes=None)
         trainer = Trainer(hp, dataloader, model)
+    elif hp.model_name == "AudioEncoder":
+        from models.AudioEncoder import Trainer, AudioEncoder
+        model = AudioEncoder()
+        trainer = Trainer(hp, dataloader, model)
     return model, trainer
 
 from hyperparams import hyperparams

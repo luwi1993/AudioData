@@ -12,10 +12,10 @@ class hyperparams:
     lr = 0.0000000000000000000000000000000000000000000000005
     data_shape = (90,80)
     n_epochs = 200
-    batch_size = 100
+    batch_size = 32
     load_n = 500
     path = "/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/JE/"
-    model_name = "CNN"
+    model_name = "AudioEncoder"
     dataloader_path = "files/dataloader_"+model_name+".pth"
     num_classes = 7
     device = 'cpu'

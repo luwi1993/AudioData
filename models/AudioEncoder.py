@@ -36,12 +36,15 @@ class AudioEncoder(nn.Module):
             if k == 0:
                 seq.add_module("drop_{}".format(i), nn.Dropout(hp.dropout))
             i += 1
+
         seq.add_module("dense", nn.Linear(hp.hidden_dim, hp.num_classes))
-        seq.add_module("softmax", nn.Softmax(hp.num_classes))
+        seq.add_module("softmax", nn.Softmax(1))
+
         self.seq_ = seq()
+        self.dense = nn.Linear(hp.hidden_dim, hp.num_classes)
 
     def forward(self, inputs):
-        return self.seq_(inputs)
+        return nn.Softmax(self.dense(self.seq_(inputs).view(hp.batch_size, hp.hidden_dim, )),1)
 
     def print_shape(self, input_shape):
         print("audio-encoder {")
@@ -50,3 +53,51 @@ class AudioEncoder(nn.Module):
             torch.FloatTensor(np.zeros(input_shape)),
             intent_size=2)
         print("}")
+
+class Trainer:
+    def __init__(self, hp, train_loader, model):
+        self.hp = hp
+        self.train_loader = train_loader
+        self.model = model
+
+    def train(self):
+        device = self.hp.device
+        # -- Loss and optimizer
+        criterion = nn.CrossEntropyLoss()
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=self.hp.lr)
+        optimizer.zero_grad()
+
+        # -- Train the model
+        cnt_batches = 0
+        for n in range(1, 1 + self.hp.n_epochs):
+            accuracy = 0
+            for i, (featuress, labels) in enumerate(self.train_loader):
+                cnt_batches += 1
+
+                ''' original code of pytorch-tutorial:
+                images = images.reshape(-1, sequence_length, input_size).to(device)
+                labels = labels.to(device)
+                # we can see that the shape of images should be: 
+                #    (batch_size, sequence_length, input_size)
+                '''
+                featuress = featuress.to(device)
+                labels = labels.to(device)
+                print(featuress.shape)
+                # Forward pass
+                prediction = self.model(featuress)
+                print(prediction.shape)
+                loss = criterion(prediction, labels)
+
+                # Backward and optimize
+                loss.backward()  # error
+                optimizer.step()
+                optimizer.zero_grad()
+
+                accuracy += self.accuracy(prediction.data, labels.data).data.tolist()
+
+            if self.hp.verbose:
+                print("epoch: " + str(n) + " loss: ", str(loss.data.tolist()),
+                      "accuracy: " + str(accuracy / (i + 1)))
+
+    def accuracy(self, y_pred, target):
+        return (np.argmax(y_pred) == np.argmax(target)).sum() / len(y_pred)
