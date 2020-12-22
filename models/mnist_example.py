@@ -50,7 +50,7 @@ import numpy as np
 
 class MnistDataset(Dataset):
     def __init__(self):
-        mndata = MNIST('files/mnist/')
+        mndata = MNIST('../files/mnist/')
         self.images, self.labels = mndata.load_training()
         assert len(self.images) == len(self.labels), "MNIST Load Error"
         self.n_samples = len(self.images)

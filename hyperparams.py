@@ -9,7 +9,7 @@ class hyperparams:
     preemphasis = 0.97
     max_db = 100
     ref_db = 20
-    lr = 0.0000000000000000000000000000000000000000000000005
+    lr = 0.00000005
     data_shape = (90,80)
     n_epochs = 200
     batch_size = 32

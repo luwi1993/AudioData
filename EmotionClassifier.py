@@ -1,8 +1,9 @@
-
 import torch
 from torch.utils.data import DataLoader
-from SoundDataset import SoundDataset
+from SoundClasses.SoundDataset import SoundDataset
 import os
+from hyperparams import hyperparams as hp
+
 
 def dataloader_exists(path):
     return os.path.isfile(path)
@@ -22,16 +23,14 @@ def get_model(hp, dataloader):
         trainer = Trainer(hp, dataloader, model)
     return model, trainer
 
-from hyperparams import hyperparams
 if __name__ == "__main__":
-    hp = hyperparams()
 
     print("prepare dataset...")
     if dataloader_exists(hp.dataloader_path):
         dataloader = torch.load(hp.dataloader_path)
         print("dataloader found at: "+ hp.dataloader_path)
     else:
-        dataset = SoundDataset(hp)
+        dataset = SoundDataset()
         dataloader = DataLoader(dataset=dataset, batch_size=hp.batch_size, shuffle=True, num_workers=0)
         torch.save(dataloader, hp.dataloader_path)
 

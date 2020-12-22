@@ -1,29 +1,27 @@
 from torch.utils.data import Dataset
 import torch
-from SoundObject import SoundObject
+from SoundClasses.SoundFeatures import SoundFeatures
 import numpy as np
 import os
-
-
+from hyperparams import hyperparams as hp
 
 
 class SoundDataset(Dataset):
-    def __init__(self, hp):
-        self.hp = hp
+    def __init__(self):
         self.data, self.labels = self.load()
         assert len(self.data) == len(self.labels), "load error"
         self.n_samples = len(self.data)
         self.prep()
 
     def load(self):
-        file_paths = os.listdir(self.hp.path)[:self.hp.load_n]
+        file_paths = os.listdir(hp.path)[:hp.load_n]
         data, labels = [], []
         N = len(file_paths)
         for n,file in enumerate(file_paths):
-            if self.hp.verbose:
+            if hp.verbose:
                 print("file {} von {} : {}".format(n,N, file))
-            audio = SoundObject(self.hp.path + "/" + file, self.hp)
-            data.append(audio.get_feature()[:self.hp.data_shape[0], :])
+            audio = SoundFeatures(hp.path + "/" + file)
+            data.append(audio.get_feature()[:hp.data_shape[0], :])
             alphanumeric_filter = filter(str.isalpha, file[:-4])
             prefix = "".join(alphanumeric_filter)
             labels.append(prefix)
@@ -34,14 +32,14 @@ class SoundDataset(Dataset):
         self.prep_labels()
 
     def prep_mels(self):
-        if self.hp.model_name == "RNN":
-            self.data = [np.reshape(mel, (self.hp.data_shape[0], self.hp.data_shape[1])) for mel in self.data]
+        if hp.model_name == "RNN":
+            self.data = [np.reshape(mel, (hp.data_shape[0], hp.data_shape[1])) for mel in self.data]
             self.data = torch.from_numpy(np.asarray(self.data)/172).type(torch.float32)
-        elif self.hp.model_name == "CNN":
-            self.data = [np.reshape(mel, (1, self.hp.data_shape[0], self.hp.data_shape[1])) for mel in self.data]
+        elif hp.model_name == "CNN":
+            self.data = [np.reshape(mel, (1, hp.data_shape[0], hp.data_shape[1])) for mel in self.data]
             self.data = torch.from_numpy(np.asarray(self.data)/172).type(torch.float32)
-        elif self.hp.model_name == "AudioEncoder":
-            self.data = [np.reshape(mel, (self.hp.data_shape[0], self.hp.data_shape[1])).T for mel in self.data]
+        elif hp.model_name == "AudioEncoder":
+            self.data = [np.reshape(mel, (hp.data_shape[0], hp.data_shape[1])).T for mel in self.data]
             self.data = torch.from_numpy(np.asarray(self.data)/172).type(torch.float32)
 
     def prep_labels(self):
