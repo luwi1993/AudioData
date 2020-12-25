@@ -1,8 +1,8 @@
 import librosa
 import matplotlib.pyplot as plt
 import numpy as np
-import animate
-from pkg.SoundObject import SoundObject
+from SoundClasses.visualization_utils import animate
+from SoundClasses.SoundObject import SoundObject
 from hyperparams import hyperparams as hp
 
 class SoundVisualizer(SoundObject):
@@ -10,8 +10,9 @@ class SoundVisualizer(SoundObject):
         super(SoundVisualizer, self).__init__(path, init_transforms=True)
 
     def plot_time(self):
+        time = np.linspace(0, self.duration, self.n_samples)
         plt.figure()
-        plt.plot(self.time[:len(self.samples)], self.samples)
+        plt.plot(time[:len(self.samples)], self.samples)
         plt.show()
 
     def plot_freq(self, mode="stft"):

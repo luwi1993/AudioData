@@ -21,6 +21,10 @@ def get_model(hp, dataloader):
         from models.AudioEncoder import Trainer, AudioEncoder
         model = AudioEncoder()
         trainer = Trainer(hp, dataloader, model)
+    elif hp.model_name == "GAN":
+        from models.GAN import Gan, Trainer
+        model = Gan()
+        trainer = Trainer(hp, dataloader, model)
     return model, trainer
 
 if __name__ == "__main__":

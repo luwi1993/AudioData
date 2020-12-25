@@ -3,9 +3,9 @@ import numpy as np
 from hyperparams import hyperparams as hp
 import librosa
 
-class SoundFeatures(SoundProcessor):
+class SoundFeature(SoundProcessor):
     def __init__(self, path):
-        super(SoundFeatures, self).__init__(path)
+        super(SoundFeature, self).__init__(path)
 
     def spectrogram(self):
         return self.transform
@@ -43,8 +43,8 @@ class SoundFeatures(SoundProcessor):
         mfcc = np.clip((mfcc - hp.ref_db + hp.max_db) / hp.max_db, 1e-8, 1)
         return mfcc.T.astype(np.float32)
 
-    def preemphasis(self, y):
-        return np.append(y[0], y[1:] - hp.preemphasis * y[:-1])
+    def preemphasis(self):
+        return np.append(self.samples[0], self.samples[1:] - hp.preemphasis * self.samples[:-1])
 
     def get_feature(self):
         if hp.feature_mode == "mel":
@@ -52,3 +52,15 @@ class SoundFeatures(SoundProcessor):
         elif hp.feature_mode == "mfcc":
             feature = self.mfcc_feature()
         return feature
+
+import os
+if __name__ == "__main__":
+    file_paths = os.listdir(hp.path)[:10]
+    for i,file in enumerate(file_paths):
+        path = hp.path + "/" + file
+        sf = SoundFeature(path)
+        feature = sf.get_feature()
+        feature = sf.pad(feature)
+        n = int(feature.shape[0]/hp.temporal_rate)
+        feature = feature.reshape((n, 32, 80))
+        print(feature.shape)

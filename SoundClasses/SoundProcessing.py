@@ -33,13 +33,12 @@ class SoundProcessor(SoundObject):
     def trim(self):
         self.samples, _ = librosa.effects.trim(self.samples, hp.silence_db)
         self.set_params_from_samples()
-        self.get_transforms()
 
-    def pad(self):
-        t = self.samples.shape[1]
+    def pad(self, x):
+        t = x.shape[0]
         pad = hp.temporal_rate - (t % hp.temporal_rate) if t % hp.temporal_rate != 0 else 0
-        self.samples = np.pad(self.samples, [[0, 0], [0, pad]], mode="constant")
-        return self.samples
+        x = np.pad(x, [[0, pad], [0, 0]], mode="constant")
+        return x
 
     def get_filter_curve(self):
         if hp.eq_mode == "zero":

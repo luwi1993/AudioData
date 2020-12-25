@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-[docs]class Attention(nn.Module):
+class Attention(nn.Module):
     """ Applies attention mechanism on the `context` using the `query`.
 
     **Thank you** to IBM for their initial implementation of :class:`Attention`. Here is
@@ -19,7 +19,7 @@ import torch.nn as nn
     Example:
 
          >>> attention = Attention(256)
-         >>> query = torch.randn(5, 1, 256)
+         >>> query = torch.        randn(5, 1, 256)
          >>> context = torch.randn(5, 5, 256)
          >>> output, weights = attention(query, context)
          >>> output.size()

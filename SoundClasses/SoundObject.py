@@ -1,19 +1,18 @@
 import librosa
 import librosa.display
 import numpy as np
-import soundfile as sf
 from SoundClasses.SoundIO import SoundIO
 from hyperparams import hyperparams as hp
 
 
 
 class SoundObject(SoundIO):
-    def __init__(self, path, init_transforms=True):
+    def __init__(self, path):
         super(SoundObject, self).__init__(path)
-        self.load()
+
+    def load(self):
+        super(SoundObject, self).load()
         self.set_params_from_samples()
-        if init_transforms:
-            self.get_transforms()
 
     def __str__(self):
         return "\n" + "-" * 100 \
@@ -32,7 +31,6 @@ class SoundObject(SoundIO):
     def set_params_from_samples(self):
         self.duration = librosa.get_duration(self.samples)
         self.n_samples = len(self.samples)
-        self.time = np.linspace(0, self.duration, self.n_samples)
 
     def stft(self):
         self.transform = librosa.stft(self.samples, n_fft=hp.nfft, hop_length=hp.hop_length)
