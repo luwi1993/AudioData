@@ -1,8 +1,15 @@
 class hyperparams:
     # main params
     model_name = "CNN"
-    path = "/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/JE/"
+    speakers = ["JE","JK"]
+    path = {
+        "JE":"/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/JE",
+        "JK": "/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/JK",
+        "KL": "/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/KL",
+        "DC": "/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/DC"
+    }
     dataloader_path = "files/dataloader_" + model_name + ".pth"
+    load_set = "train"
 
     # stft params
     sample_rate = 22050
@@ -41,6 +48,6 @@ class hyperparams:
 
     # training params
     device = 'cpu'
-    lr = 0.00005
+    lr = 0.0000005
     n_epochs = 1000
     model_path = "files/{}_model.pth".format(model_name)

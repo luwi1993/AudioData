@@ -50,8 +50,9 @@ class SoundProcessor(SoundObject):
 
 import os
 if __name__ == "__main__":
-    file_paths = os.listdir(hp.path)[:10]
+    path = hp.path[hp.speakers[0]]
+    file_paths = os.listdir(path)[:10]
     for i,file in enumerate(file_paths):
-        path = hp.path + "/" + file
+        path = path + "/" + file
         sp = SoundProcessor(path)
         sp.low_pass(1000)

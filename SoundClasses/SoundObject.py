@@ -49,11 +49,12 @@ import pandas as pd
 
 if __name__ == "__main__":
     res = {"shape0":[], "shape1":[], "min":[], "max":[], "mean":[],"var":[]}
-    file_paths = os.listdir(hp.path)
+    hpath = hp.path[hp.speakers[0]]
+    file_paths = os.listdir(hpath)
     I = len(file_paths)
     for i,file in enumerate(file_paths):
         print(i/I)
-        path = hp.path + "/" + file
+        path = hpath + "/" + file
         so = SoundObject(path, init_transforms=True)
         print(so.transform.shape)
     #     feature = so.get_feature()

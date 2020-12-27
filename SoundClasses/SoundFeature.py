@@ -55,9 +55,10 @@ class SoundFeature(SoundProcessor):
 
 import os
 if __name__ == "__main__":
-    file_paths = os.listdir(hp.path)[:10]
+    hpath = hp.path[hp.speakers[0]]
+    file_paths = os.listdir(hpath)[:10]
     for i,file in enumerate(file_paths):
-        path = hp.path + "/" + file
+        path = hpath + "/" + file
         sf = SoundFeature(path)
         feature = sf.get_feature()
         feature = sf.pad(feature)

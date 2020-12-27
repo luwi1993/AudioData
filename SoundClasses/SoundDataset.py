@@ -7,16 +7,20 @@ from hyperparams import hyperparams as hp
 import time
 import pandas as pd
 
+
 class SoundDataset(Dataset):
     def __init__(self):
-        self.metadata = {"path": [], "name": [], "shape": [], "duration": [], "n_samples": [], "label": [],
+        self.metadata = {"index": [], "speaker": [], "path": [], "name": [], "shape": [], "duration": [],
+                         "n_samples": [], "label": [],
                          "load_time": []}
         self.data, self.labels = self.load()
         assert len(self.data) == len(self.labels), "load error"
         self.n_samples = len(self.data)
         self.process()
 
-    def save_metadata(self, path, name, shape, duration, n_samples, label, timestamp):
+    def save_metadata(self, index, speaker, path, name, shape, duration, n_samples, label, timestamp):
+        self.metadata["index"].append(index)
+        self.metadata["speaker"].append(speaker)
         self.metadata["path"].append(path)
         self.metadata["name"].append(name)
         self.metadata["shape"].append(shape)
@@ -27,25 +31,28 @@ class SoundDataset(Dataset):
         pd.DataFrame(self.metadata).to_csv("files/metadata.csv", sep=",")
 
     def load(self):
-        file_paths = self.get_paths()
         data, labels = [], []
-        N = len(file_paths)
-        for n, file in enumerate(file_paths):
-            if hp.verbose:
-                print("file {} von {}: {}".format(n, N, file))
+        index = 0
+        for speaker in hp.speakers:
+            file_paths = self.get_paths(speaker)
+            N = len(file_paths)
+            for n, file in enumerate(file_paths):
+                if hp.verbose:
+                    print("speaker {} file {} von {}: {}".format(speaker, n, N, file))
+                audio = SoundFeature(hp.path[speaker] + "/" + file)
 
-            audio = SoundFeature(hp.path + "/" + file)
+                audio.load()
+                audio = self.raw_audio_preprocessing(audio)
 
-            audio.load()
-            audio = self.raw_audio_preprocessing(audio)
+                feature = audio.get_feature()
+                data.append(feature)
+                label = self.get_label_info(file)
+                labels.append(label)
 
-            feature = audio.get_feature()
-            data.append(feature)
-            label = self.get_label_info(file)
-            labels.append(label)
-
-            self.save_metadata(path=hp.path, name=file, shape=feature.shape, duration=audio.duration,
-                               n_samples=audio.n_samples, label=label, timestamp=time.time())
+                self.save_metadata(index=index, speaker=speaker, path=hp.path[speaker], name=file, shape=feature.shape,
+                                   duration=audio.duration,
+                                   n_samples=audio.n_samples, label=label, timestamp=time.time())
+                index += 1
         return data, labels
 
     def raw_audio_preprocessing(self, audio):
@@ -54,13 +61,13 @@ class SoundDataset(Dataset):
         audio.stft()
         return audio
 
-    def get_label_info(self, file):   #TODO make this more dynamic.
+    def get_label_info(self, file):  # TODO make this more dynamic.
         alphanumeric_filter = filter(str.isalpha, file[:-4])
         return "".join(alphanumeric_filter)
 
-    def slice_data(self):
+    def slice_data(self, speaker):
         slices = {}
-        all_files = os.listdir(hp.path)
+        all_files = os.listdir(hp.path[speaker])
         file_paths = all_files[:hp.load_n]
         for n, file in enumerate(file_paths):
             str_label = self.get_label_info(file)
@@ -69,8 +76,8 @@ class SoundDataset(Dataset):
             slices[str_label].append(file)
         return slices
 
-    def create_training_sets(self):
-        slices = self.slice_data()
+    def create_training_sets(self, speaker):
+        slices = self.slice_data(speaker)
         file_sets = {key: [] for key in ["train", "test", "valid"]}
         for slice in slices.keys():
             files_from_slice = slices[slice]
@@ -88,19 +95,18 @@ class SoundDataset(Dataset):
                 for file in files:
                     training_sets["file"].append(file)
                     training_sets["set"].append(set)
-        pd.DataFrame(training_sets).to_csv("files/training_sets.csv", sep=",")
         return training_sets
 
-
-    def get_paths(self, set="all"):
+    def get_paths(self, speaker):
         if set == "all":
-            file_paths = os.listdir(hp.path)[:hp.load_n]
+            file_paths = os.listdir(hp.path[speaker])[:hp.load_n]
         else:
-            if os.path.isfile("files/training_sets.csv"):
-                training_sets = pd.read_csv("files/training_sets.csv", sep=",")
+            if os.path.isfile("files/training_sets_{}.csv".format(speaker)):
+                training_sets = pd.read_csv("files/training_sets_{}.csv".format(speaker), sep=",")
             else:
-                training_sets = self.create_training_sets()
-            file_paths = training_sets["file"][training_sets["set"] == set]
+                training_sets = pd.DataFrame(self.create_training_sets(speaker))
+                training_sets.to_csv("files/training_sets_{}.csv".format(speaker), sep=",")
+            file_paths = training_sets["file"][training_sets["set"] == hp.load_set]
         return file_paths
 
     def process(self):
