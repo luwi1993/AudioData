@@ -31,10 +31,12 @@ class SoundFeature(SoundProcessor):
         return 20 * np.log10(np.maximum(1e-10, x))
 
     def mel_feature(self):
+        # mel_basis  x  magnitude_spectrogram
         mel = self.mel_spectrogram()
+
         mel = self.to_db(mel)
+
         mel = np.clip((mel - hp.ref_db + hp.max_db) / hp.max_db, 1e-8, 1)
-       # mel = self.pad(mel)
         return mel.T.astype(np.float32)
 
     def mfcc_feature(self):

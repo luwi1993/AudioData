@@ -1,14 +1,15 @@
 class hyperparams:
     # main params
+    dataset_name = "SAVEE"
     model_name = "CNN"
-    speakers = ["JE","JK"]
+    speakers = ["DC","JK"]
     path = {
         "JE":"/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/JE",
         "JK": "/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/JK",
         "KL": "/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/KL",
         "DC": "/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/DC"
     }
-    dataloader_path = "files/dataloader_" + model_name + ".pth"
+    dataloader_path = "files/dataloader_{}_{}.pth".format(dataset_name, "_".join(speakers))
     load_set = "train"
 
     # stft params
