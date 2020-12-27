@@ -55,8 +55,7 @@ class RNN(nn.Module):
         return idx
 
 class Trainer:
-    def __init__(self, hp, train_loader, model):
-        self.hp = hp
+    def __init__(self, train_loader, model):
         self.train_loader = train_loader
         self.model = model
 

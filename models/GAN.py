@@ -58,15 +58,16 @@ class Discriminator(nn.Module):
         return validity
 
 
-class Gan:
+class Gan(nn.Module):
     def __init__(self):
+        super(Gan, self).__init__()
         self.generator = Generator()
         self.discriminator = Discriminator()
 
 
 
 class Trainer:
-    def __init__(self, hp, dataloader, model):
+    def __init__(self, dataloader, model):
         self.gan = model
         self.dataloader = dataloader
         self.img_shape = (1, hp.temporal_rate, hp.n_features)
@@ -78,9 +79,6 @@ class Trainer:
             self.gan.generator.cuda()
             self.gan.discriminator.cuda()
             adversarial_loss.cuda()
-
-        # Configure data loader
-        os.makedirs("../../data/mnist", exist_ok=True)
 
         # Optimizers
         optimizer_G = torch.optim.Adam(self.gan.generator.parameters(), lr=hp.lr, betas=(0.5, 0.999))

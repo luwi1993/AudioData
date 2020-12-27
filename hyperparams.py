@@ -1,7 +1,7 @@
 class hyperparams:
     # main params
-    model_name = "GAN"
-    path = "/Users/luwi/Documents/Datasets/Emotional_Speech/LJSpeech-1.1/wavs/"
+    model_name = "CNN"
+    path = "/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/JE/"
     dataloader_path = "files/dataloader_" + model_name + ".pth"
 
     # stft params
@@ -20,7 +20,7 @@ class hyperparams:
     max_db = 100
     ref_db = 20
 
-    n_features = 80
+    n_features = 64
     temporal_rate = 32
     feature_mode = "mel"
 
@@ -43,3 +43,4 @@ class hyperparams:
     device = 'cpu'
     lr = 0.00005
     n_epochs = 1000
+    model_path = "files/{}_model.pth".format(model_name)
