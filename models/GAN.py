@@ -139,12 +139,8 @@ class Trainer:
                         % (epoch, hp.n_epochs, i, len(self.dataloader), d_loss.item(), g_loss.item())
                     )
 
-                batches_done = epoch * len(self.dataloader) + i
-                if epoch % 100 == 0 and i == 0:
-                    print(imgs.data[0, 0].shape, gen_imgs.data[0, 0].shape)
-                    plt.imshow(gen_imgs.data[0, 0])
-                    plt.show()
-                    plt.imshow(imgs.data[0, 0])
-                    plt.show()
+            if epoch % 1000 == 0:
+                plt.imshow(gen_imgs.data[0, 0].cpu())
+                plt.savefig("files/GAN_{}.png".format(epoch))
 
 
