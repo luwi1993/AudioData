@@ -153,15 +153,3 @@ class Trainer:
             plt.savefig("files/GAN_{}.png".format(epoch))
 
 
-    def train(self):
-        self.init_trianing()
-        for epoch in range(hp.n_epochs):
-            self.init_epoch(epoch)
-            for i, (imgs, _) in enumerate(self.dataloader):
-                self.step(imgs, _)
-
-            if hp.verbose:
-                self.verbose()
-
-
-
