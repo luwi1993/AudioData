@@ -58,7 +58,7 @@ if __name__ == "__main__":
     trainer.init_training()
 
     for epoch in range(hp.n_epochs):
-        trainer.init_epoch()
+        trainer.init_epoch(epoch)
 
         for data, label in trainer.dataloader:
             trainer.step(data, label)

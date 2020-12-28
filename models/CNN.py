@@ -71,13 +71,14 @@ class Trainer:
         self.model.float()
         self.optimizer = optim.Adadelta(self.model.parameters(), lr=hp.lr)
         self.loss = nn.CrossEntropyLoss()
-        self.log = {key: [] for key in ["accuracy", "loss"]}
+        self.log = {key: [] for key in ["epoch", "accuracy", "loss"]}
 
         if cuda:
             self.model.cuda()
             self.loss.cuda()
 
-    def init_epoch(self):
+    def init_epoch(self, epoch):
+        self.log["epoch"].append(epoch)
         self.log["accuracy"].append(0)
         self.log["loss"].append(0)
 

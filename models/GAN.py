@@ -71,76 +71,97 @@ class Trainer:
         self.gan = model
         self.dataloader = dataloader
         self.img_shape = (1, hp.temporal_rate, hp.n_features)
+        self.n_batches = len(self.dataloader)
 
-    def train(self):
+    def step(self, imgs, label):
+        b, n, one, h, w = imgs.shape
+        imgs = imgs.view(b * n, 1, hp.temporal_rate, hp.n_features)
+        # Adversarial ground truths
+        valid = Variable(self.Tensor(imgs.size(0), 1).fill_(1.0), requires_grad=False)
+        fake = Variable(self.Tensor(imgs.size(0), 1).fill_(0.0), requires_grad=False)
+
+        # Configure input
+        real_imgs = Variable(imgs.type(self.Tensor))
+
+        # -----------------
+        #  Train Generator
+        # -----------------
+
+        self.optimizer_G.zero_grad()
+
+        # Sample noise as generator input
+        z = Variable(self.Tensor(np.random.normal(0, 1, (imgs.shape[0], hp.hidden_dim))))
+
+        # Generate a batch of images
+        self.current_gen_imgs = self.gan.generator(z)
+
+        # Loss measures generator's ability to fool the discriminator
+        self.current_g_loss = self.adversarial_loss(self.gan.discriminator(self.current_gen_imgs), valid)
+
+        self.current_g_loss.backward()
+        self.optimizer_G.step()
+
+        # ---------------------
+        #  Train Discriminator
+        # ---------------------
+
+        self.optimizer_D.zero_grad()
+
+        # Measure discriminator's ability to classify real from generated samples
+        real_loss = self.adversarial_loss(self.gan.discriminator(real_imgs), valid)
+        fake_loss = self.adversarial_loss(self.gan.discriminator(self.current_gen_imgs.detach()), fake)
+        self.current_d_loss = (real_loss + fake_loss) / 2
+
+        self.current_d_loss.backward()
+        self.optimizer_D.step()
+
+    def init_training(self):
         # Loss function
-        adversarial_loss = torch.nn.BCELoss()
+        self.adversarial_loss = torch.nn.BCELoss()
         if cuda:
             self.gan.generator.cuda()
             self.gan.discriminator.cuda()
-            adversarial_loss.cuda()
+            self. adversarial_loss.cuda()
 
         # Optimizers
-        optimizer_G = torch.optim.Adam(self.gan.generator.parameters(), lr=hp.lr, betas=(0.5, 0.999))
-        optimizer_D = torch.optim.Adam(self.gan.discriminator.parameters(), lr=hp.lr, betas=(0.5, 0.999))
+        self.optimizer_G = torch.optim.Adam(self.gan.generator.parameters(), lr=hp.lr, betas=(0.5, 0.999))
+        self.optimizer_D = torch.optim.Adam(self.gan.discriminator.parameters(), lr=hp.lr, betas=(0.5, 0.999))
 
-        Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
+        self.Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
+        self.log = {key: [] for key in ["epoch", "d_loss", "g_loss"]}
 
-        # ----------
-        #  Training
-        # ----------
 
+    def init_epoch(self, epoch):
+        self.log["epoch"].append(epoch)
+        self.log["d_loss"].append(0)
+        self.log["g_loss"].append(0)
+
+    def log_entry(self, label):
+        self.log["d_loss"][-1] += self.current_d_loss
+        self.log["g_loss"][-1] += self.current_g_loss
+
+    def verbose(self, epoch):
+        print(
+            "epoch: {}; n_batches: {}; d_loss: {}; g_loss: {}".format(
+                epoch,
+                self.n_batches,
+                self.log["d_loss"][-1],
+                self.log["g_loss"][-1])
+        )
+        if epoch % 1000 == 0:
+            plt.imshow(self.current_gen_imgs.data[0, 0].cpu())
+            plt.savefig("files/GAN_{}.png".format(epoch))
+
+
+    def train(self):
+        self.init_trianing()
         for epoch in range(hp.n_epochs):
+            self.init_epoch(epoch)
             for i, (imgs, _) in enumerate(self.dataloader):
-                b, n, one,h, w = imgs.shape
-                imgs = imgs.view(b * n, 1, hp.temporal_rate, hp.n_features)
-                # Adversarial ground truths
-                valid = Variable(Tensor(imgs.size(0), 1).fill_(1.0), requires_grad=False)
-                fake = Variable(Tensor(imgs.size(0), 1).fill_(0.0), requires_grad=False)
+                self.step(imgs, _)
 
-                # Configure input
-                real_imgs = Variable(imgs.type(Tensor))
+            if hp.verbose:
+                self.verbose()
 
-                # -----------------
-                #  Train Generator
-                # -----------------
-
-                optimizer_G.zero_grad()
-
-                # Sample noise as generator input
-                z = Variable(Tensor(np.random.normal(0, 1, (imgs.shape[0], hp.hidden_dim))))
-
-                # Generate a batch of images
-                gen_imgs = self.gan.generator(z)
-
-                # Loss measures generator's ability to fool the discriminator
-                g_loss = adversarial_loss(self.gan.discriminator(gen_imgs), valid)
-
-                g_loss.backward()
-                optimizer_G.step()
-
-                # ---------------------
-                #  Train Discriminator
-                # ---------------------
-
-                optimizer_D.zero_grad()
-
-                # Measure discriminator's ability to classify real from generated samples
-                real_loss = adversarial_loss(self.gan.discriminator(real_imgs), valid)
-                fake_loss = adversarial_loss(self.gan.discriminator(gen_imgs.detach()), fake)
-                d_loss = (real_loss + fake_loss) / 2
-
-                d_loss.backward()
-                optimizer_D.step()
-
-                if i == 0:
-                    print(
-                        "[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]"
-                        % (epoch, hp.n_epochs, i, len(self.dataloader), d_loss.item(), g_loss.item())
-                    )
-
-            if epoch % 1000 == 0:
-                plt.imshow(gen_imgs.data[0, 0].cpu())
-                plt.savefig("files/GAN_{}.png".format(epoch))
 
 
