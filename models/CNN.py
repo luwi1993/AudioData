@@ -8,6 +8,7 @@ from hyperparams import hyperparams as hp
 
 cuda = True if torch.cuda.is_available() else False
 
+
 class CNN(nn.Module):
     def __init__(self, hidden_size=512, dense_size=2048):
         super(CNN, self).__init__()
@@ -57,31 +58,42 @@ class Trainer:
     def __init__(self, dataloader, model):
         self.model = model
         self.dataloader = dataloader
+        self.n_batches = len(self.dataloader)
 
-    def train(self):
+    def step(self, data, label):
+        self.optimizer.zero_grad()
+        self.current_prediction = self.model(data)
+        self.current_loss = self.loss(self.current_prediction, label)
+        self.current_loss.backward()
+        self.optimizer.step()
+
+    def init_training(self):
         self.model.float()
-        optimizer = optim.Adadelta(self.model.parameters(), lr=hp.lr)
-        loss = nn.CrossEntropyLoss()
+        self.optimizer = optim.Adadelta(self.model.parameters(), lr=hp.lr)
+        self.loss = nn.CrossEntropyLoss()
+        self.log = {key: [] for key in ["accuracy", "loss"]}
 
         if cuda:
             self.model.cuda()
-            loss.cuda()
+            self.loss.cuda()
 
-        for n in range(hp.n_epochs):
-            accuracy = 0
-            for i, (data, label) in enumerate(self.dataloader):
-                optimizer.zero_grad()
-                prediction = self.model(data)
+    def init_epoch(self):
+        self.log["accuracy"].append(0)
+        self.log["loss"].append(0)
 
-                output = loss(prediction, label)
-                output.backward()
-                optimizer.step()
+    def log_entry(self, label):
+        self.log["accuracy"][-1] += self.accuracy(self.current_prediction.data.numpy(),
+                                                  label.data.numpy()).data.tolist()
+        self.log["loss"][-1] += self.current_loss
 
-                accuracy += self.accuracy(prediction.data.numpy(), label.data.numpy()).data.tolist()
-
-            if hp.verbose:
-                print("epoch: " + str(n) + " loss: ", str(output.data.tolist()),
-                      "accuracy: " + str(accuracy / (i + 1)))
+    def verbose(self, epoch):
+        print(
+            "epoch: {}; n_batches: {}; loss: {}; accuracy {}".format(
+                epoch,
+                self.n_batches,
+                self.log["loss"][-1],
+                self.log["accuracy"][-1] / (self.n_batches + 1))
+        )
 
     def accuracy(self, y_pred, target):
         return (np.argmax(y_pred, 1) == target).sum() / len(y_pred)

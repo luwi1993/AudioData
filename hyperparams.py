@@ -39,7 +39,7 @@ class hyperparams:
 
     # dataset params
     load_n = 10000
-    batch_size = 64
+    batch_size = 16
     split = {"train": 0.6, "test": 0.2, "valid": 0.2}
     verbose = True  # TODO use this consequently
 
