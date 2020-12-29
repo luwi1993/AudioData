@@ -72,6 +72,6 @@ if __name__ == "__main__":
 
         if hp.verbose:
             trainer.verbose(epoch)
-            if (epoch +1) % hp.model_save_freq:
+            if (epoch +1) % hp.model_save_freq == 0:
                 torch.save(trainer.model.state_dict(), hp.model_path[:-4] + "_{}k.pth".format(epoch+1))
     torch.save(trainer.model.state_dict(), hp.model_path)
