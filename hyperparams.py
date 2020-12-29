@@ -53,3 +53,4 @@ class hyperparams:
     lr = 0.0000005
     n_epochs = 1000
     model_path = "files/{}_model.pth".format(model_name)
+    model_save_freq = 5000

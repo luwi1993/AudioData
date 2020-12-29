@@ -57,7 +57,7 @@ class Trainer:
             "epoch: {}; n_batches: {}; loss: {}; accuracy {}".format(
                 epoch,
                 self.n_batches,
-                self.log["loss"][-1],
+                self.log["loss"][-1] / (self.n_batches + 1),
                 self.log["accuracy"][-1] / (self.n_batches + 1))
         )
 
