@@ -68,7 +68,7 @@ class SoundDataset(Dataset):
     def slice_data(self, speaker):
         slices = {}
         all_files = os.listdir(hp.path[speaker])
-        file_paths = all_files[:hp.load_n]
+        file_paths = all_files
         for n, file in enumerate(file_paths):
             str_label = self.get_label_info(file)
             if str_label not in slices.keys():

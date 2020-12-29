@@ -1,10 +1,11 @@
 class hyperparams:
     # main params
-    dataset_name = "SAVEE"
+    dataset_name = "LJSpeech"
     model_name = "GAN"
-    speakers = ["DC","JK"]
+    speakers = ["LJ"]
     path = {
-        "JE":"/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/JE",
+        "LJ": "/Users/luwi/Documents/Datasets/Emotional_Speech/LJSpeech-1.1/wavs",
+        "JE": "/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/JE",
         "JK": "/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/JK",
         "KL": "/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/KL",
         "DC": "/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/DC"

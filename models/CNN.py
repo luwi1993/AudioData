@@ -81,8 +81,8 @@ class Trainer:
         self.log["loss"].append(0)
 
     def log_entry(self, label):
-        self.log["accuracy"][-1] += self.accuracy(self.current_prediction.data.numpy(),
-                                                  label.data.numpy()).data.tolist()
+        self.log["accuracy"][-1] += self.accuracy(self.current_prediction.cpu().data.numpy(),
+                                                  label.data.numpy()).cpu().data.numpy()
         self.log["loss"][-1] += self.current_loss.cpu().data.numpy()
 
 
