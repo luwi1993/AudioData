@@ -1,7 +1,7 @@
 class hyperparams:
     # main params
     dataset_name = "SAVEE"
-    model_name = "CNN"
+    model_name = "GAN"
     speakers = ["DC","JK"]
     path = {
         "JE":"/Users/luwi/Documents/Datasets/Emotional_Speech/SAVEE/AudioData/JE",
@@ -22,11 +22,11 @@ class hyperparams:
     eq_mode = "linear"
 
     # feature params
-    silence_db = 30
+    silence_db = 30 # trim
     preemphasis = 0.97
 
-    max_db = 100
-    ref_db = 20
+    max_db = 100 # normalize
+    ref_db = 20 # normalize
 
     n_features = 64
     temporal_rate = 32
@@ -49,6 +49,7 @@ class hyperparams:
 
     # training params
     device = 'cpu'
+    cuda = device == "cuda"
     lr = 0.0000005
     n_epochs = 1000
     model_path = "files/{}_model.pth".format(model_name)

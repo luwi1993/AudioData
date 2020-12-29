@@ -99,7 +99,7 @@ class SoundDataset(Dataset):
 
     def get_paths(self, speaker):
         if set == "all":
-            file_paths = os.listdir(hp.path[speaker])[:hp.load_n]
+            file_paths = os.listdir(hp.path[speaker])
         else:
             if os.path.isfile("files/training_sets_{}.csv".format(speaker)):
                 training_sets = pd.read_csv("files/training_sets_{}.csv".format(speaker), sep=",")
@@ -107,7 +107,7 @@ class SoundDataset(Dataset):
                 training_sets = pd.DataFrame(self.create_training_sets(speaker))
                 training_sets.to_csv("files/training_sets_{}.csv".format(speaker), sep=",")
             file_paths = training_sets["file"][training_sets["set"] == hp.load_set]
-        return file_paths
+        return file_paths[:hp.load_n]
 
     def process(self):
         self.process_feature()

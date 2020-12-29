@@ -6,8 +6,6 @@ from torch import optim
 from models.Attention import Attention
 from hyperparams import hyperparams as hp
 
-cuda = True if torch.cuda.is_available() else False
-
 
 class CNN(nn.Module):
     def __init__(self, hidden_size=512, dense_size=2048):
@@ -40,8 +38,8 @@ class CNN(nn.Module):
 
     def forward(self, x):
         batch_size, n_steps, n_channels, hight, width = x.shape
-        # querry = torch.cuda.FloatTensor(batch_size, 1, self.dense_size).fill_(0) # use this for gpu
-        querry = torch.zeros((batch_size, 1, self.dense_size))
+        querry = torch.cuda.FloatTensor(batch_size, 1, self.dense_size).fill_(0) if hp.cuda else torch.zeros(
+            (batch_size, 1, self.dense_size))
         x = x.view((batch_size * n_steps, n_channels, hight, width))
         x = self.conv_embedding(x)
         x = x.view((batch_size, n_steps, self.dense_size))
@@ -73,9 +71,9 @@ class Trainer:
         self.loss = nn.CrossEntropyLoss()
         self.log = {key: [] for key in ["epoch", "accuracy", "loss"]}
 
-        if cuda:
-            self.model.cuda()
-            self.loss.cuda()
+
+        self.model.to(hp.device)
+        self.loss.to(hp.device)
 
     def init_epoch(self, epoch):
         self.log["epoch"].append(epoch)
@@ -85,7 +83,8 @@ class Trainer:
     def log_entry(self, label):
         self.log["accuracy"][-1] += self.accuracy(self.current_prediction.data.numpy(),
                                                   label.data.numpy()).data.tolist()
-        self.log["loss"][-1] += self.current_loss
+        self.log["loss"][-1] += self.current_loss.cpu().data.numpy()
+
 
     def verbose(self, epoch):
         print(

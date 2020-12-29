@@ -12,23 +12,25 @@ def get_model(dataloader):
     if hp.model_name == "CNN":
         from models.CNN import Trainer, CNN
         model = CNN()
-        trainer = Trainer(dataloader, model)
     elif hp.model_name == "RNN":
         from models.RNN import Trainer, RNN
         model = RNN(hp.n_features, 64, 3, hp.num_classes, hp.device, classes=None)
-        trainer = Trainer(dataloader, model)
     elif hp.model_name == "AudioEncoder":
         from models.AudioEncoder import Trainer, AudioEncoder
         model = AudioEncoder()
-        trainer = Trainer(dataloader, model)
     elif hp.model_name == "GAN":
         from models.GAN import Gan, Trainer
         model = Gan()
-        trainer = Trainer(dataloader, model)
     elif hp.model_name == "Test":
         from models.TestModul import TestModule, Trainer
         model = TestModule()
-        trainer = Trainer(dataloader, model)
+
+    if os.path.isfile(hp.model_path):
+        model.load_state_dict(torch.load(hp.model_path))
+        print("model loaded from: {}".format(hp.model_path))
+
+    trainer = Trainer(dataloader, model)
+
     return model, trainer
 
 def new_dataloader():
@@ -49,19 +51,23 @@ def get_dataloader():
     return dataloader
 
 if __name__ == "__main__":
+    if not os.path.isdir("files"):
+        os.mkdir("files")
+
     print("prepare dataset...")
     dataloader = get_dataloader()
 
+    print("get model...")
     model, trainer = get_model(dataloader)
-    print("start training...")
 
+    print("start training...")
     trainer.init_training()
 
     for epoch in range(hp.n_epochs):
         trainer.init_epoch(epoch)
 
         for data, label in trainer.dataloader:
-            trainer.step(data, label)
+            trainer.step(data.to(hp.device), label.to(hp.device))
             trainer.log_entry(label)
 
         if hp.verbose:
